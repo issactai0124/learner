@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Small proxy to keep generative API key server-side for Edu-Quiz Agent",
   "main": "server.js",
+  "engines": {
+    "node": ">=16"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"

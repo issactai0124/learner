@@ -2,6 +2,8 @@
 
 A lightweight client + proxy demo that generates short multiple-choice quizzes and teacher-style feedback using an LLM backend. The frontend is a static `index.html` that uses Tailwind and KaTeX for math rendering; the backend is a small proxy that keeps your API key off the client.
 
+![Demo screenshot](assets/image.png)
+
 ## Features
 
 - Generate 5-question multiple-choice quizzes for a specified Form/Grade and topic.
