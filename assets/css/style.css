@@ -1,0 +1,51 @@
+/* Extracted styles from index.html */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f7f9fc;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+}
+#app-container {
+    width: 100%;
+    max-width: 768px;
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+.step-transition {
+    transition: opacity 0.3s ease-in-out;
+}
+.fade-out {
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    overflow: hidden;
+}
+.fade-in {
+    opacity: 1;
+    height: auto;
+    overflow: visible;
+}
+/* Improved styling for teacher feedback */
+#teacher-feedback {
+    background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+    border-left: 4px solid #6366f1; /* indigo-500 */
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    color: #1f2937; /* gray-800 */
+    line-height: 1.6;
+}
+#teacher-feedback h1, #teacher-feedback h2, #teacher-feedback h3 {
+    margin-top: .5rem;
+    margin-bottom: .5rem;
+    color: #111827;
+}
+#teacher-feedback p { margin: .45rem 0; }
+#teacher-feedback ul { margin: .5rem 0 0.5rem 1.25rem; }
+#teacher-feedback li { margin: .25rem 0; }
+#teacher-feedback code { background: #f3f4f6; padding: .1rem .35rem; border-radius: .25rem; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace; font-size: .95rem; }
+#teacher-feedback strong { color: #0f172a; }

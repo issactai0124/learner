@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edu-Quiz Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- KaTeX for rendering math (auto-render will render $...$ and $$...$$) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- Extracted stylesheet -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="app-container">
+    <h1 id="app-title" class="text-3xl font-bold text-center text-indigo-700 mb-4">Secondary School Knowledge Tester 🧠</h1>
+    <nav id="breadcrumbs" class="text-sm text-gray-500 mb-6">
+        <span id="crumb-lang" class="font-medium text-indigo-600">Language</span>
+        <span class="mx-2">›</span>
+        <span id="crumb-form" class="mx-2 text-gray-400">Form/Grade</span>
+        <span class="mx-2">›</span>
+        <span id="crumb-topic" class="mx-2 text-gray-400">Topic</span>
+        <span class="mx-2">›</span>
+        <span id="crumb-quiz" class="mx-2 text-gray-400">Quiz</span>
+        <span class="mx-2">›</span>
+        <span id="crumb-feedback" class="mx-2 text-gray-400">Feedback</span>
+    </nav>
+    <div id="restore-banner" class="hidden mb-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800">
+        <div class="flex items-center justify-between">
+            <div id="restore-banner-text">We found a saved quiz from your previous session. Would you like to continue where you left off?</div>
+            <div class="flex gap-2">
+                <button id="btn-continue-restore" onclick="continueRestore()" class="px-4 py-2 bg-indigo-600 text-white rounded">Continue</button>
+                <button id="btn-discard-restore" onclick="discardRestore()" class="px-4 py-2 bg-white border rounded">Discard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="hidden text-center p-4 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg mb-4">
+        <div class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-yellow-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span id="loading-text">Generating quiz... please wait.</span>
+        </div>
+    </div>
+
+    <!-- Step 0: Choose Language -->
+    <div id="step-0" class="step-transition fade-in">
+        <p class="mb-4 text-gray-600">Please choose your language / 請選擇語言：</p>
+        <div class="flex gap-4 mb-4">
+              <button id="btn-zh" onclick="chooseLanguage('zh')" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">中文（繁體）</button>
+              <button id="btn-en" onclick="chooseLanguage('en')" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">English</button>
+        </div>
+    </div>
+
+    <!-- Step 1: Get Form/Grade -->
+    <div id="step-1" class="step-transition fade-out hidden">
+        <p class="mb-4 text-gray-600">To start, choose whether you use "Form" or "Grade", then enter the corresponding number.</p>
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-6">
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="levelKind" id="kind-form" value="form" checked onchange="toggleKind('form')" class="w-4 h-4">
+                    <span class="font-medium">Form</span>
+                </label>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="form-number" min="1" max="7" value="3" class="w-24 p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <span class="text-sm text-gray-500">(1 - 7)</span>
+                </div>
+
+                <label class="flex items-center gap-2 ml-6">
+                    <input type="radio" name="levelKind" id="kind-grade" value="grade" onchange="toggleKind('grade')" class="w-4 h-4">
+                    <span class="font-medium">Grade</span>
+                </label>
+                <div class="flex items-center gap-2">
+                        <input type="number" id="grade-number" min="7" max="12" value="10" disabled class="w-24 p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 focus:ring-indigo-500 focus:border-indigo-500">
+                        <span class="text-sm text-gray-500">(7 - 12)</span>
+                </div>
+            </div>
+
+            <!-- Chinese single-grade selector (shown when mainLanguage === 'zh') -->
+            <div id="zh-grade-block" class="hidden">
+                <label id="zh-grade-label" class="block mb-2 font-medium">中學 年級</label>
+                <div class="flex items-center gap-2">
+                    <select id="zh-grade-select" class="w-32 p-2 border border-gray-300 rounded-lg">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                    </select>
+                    <span class="text-sm text-gray-500">年級 (1 - 7)</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button id="btn-back-lang" onclick="backToLanguage()" class="px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Back</button>
+                <button id="btn-next" onclick="goToStep2()" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md">Next</button>
+            </div>
+        </div>
+        </div>
+
+        <!-- Step 2: Get Subject/Topic -->
+
+        <!-- Step 2: Get Subject/Topic -->
+        <div id="step-2" class="step-transition fade-out hidden">
+            <p class="mb-4 text-gray-600">Got it! You are in <span id="display-form" class="font-bold text-indigo-600"></span>. Now, what subject or specific topic do you want to be tested on?</p>
+            <div class="flex gap-2">
+                <input type="text" id="subject-input" placeholder="e.g., Mathematics, Physics" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                <div class="flex gap-2">
+                    <!-- Back on the left, Generate on the right -->
+                    <button id="btn-back-step2" onclick="backToStep1()" class="px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Back</button>
+                    <button onclick="startQuizGeneration()" class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150 shadow-md">Generate Quiz</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Quiz Interface -->
+        <div id="step-3" class="step-transition fade-out hidden">
+            <h2 class="text-2xl font-semibold mb-2 text-gray-800"><span id="quiz-label">Quiz</span>: <span id="quiz-topic" class="text-indigo-600"></span></h2>
+            <div id="answer-counter" class="text-sm text-gray-600 mb-4"> </div>
+            <div id="quiz-questions" class="space-y-6 mb-8">
+                <!-- Questions will be injected here -->
+            </div>
+                <div class="flex gap-2">
+                    <button id="btn-back-quiz" onclick="backToStep2FromQuiz()" class="px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Back</button>
+                    <button id="submit-quiz-btn" onclick="submitQuiz()" class="flex-1 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition duration-150 shadow-lg hidden">Submit Answers & Get Feedback</button>
+                </div>
+        </div>
+
+        <!-- Step 4: Results and Suggestions -->
+        <div id="step-4" class="step-transition fade-out hidden">
+            <h2 id="results-title" class="text-2xl font-semibold mb-4 text-green-700">Test Results & Personalized Feedback</h2>
+
+            <div class="bg-indigo-50 p-6 rounded-xl mb-6 shadow-inner">
+                <p id="score-title" class="text-xl font-bold text-indigo-700 mb-2">Your Score:</p>
+                <p class="text-4xl font-extrabold text-indigo-900"><span id="final-score">0</span> / 5</p>
+            </div>
+
+            <div id="evaluation-content" class="space-y-4">
+                <p id="eval-title" class="text-lg font-semibold text-gray-800">Teacher's Evaluation:</p>
+                <div id="teacher-feedback" class="bg-gray-100 p-4 rounded-lg text-gray-700 leading-relaxed">
+                    <!-- LLM feedback will be injected here -->
+                </div>
+        
+            <p id="review-title" class="text-lg font-semibold text-gray-800 pt-4">Review Your Answers:</p>
+                <div id="review-panel" class="space-y-4">
+                    <!-- Correct answers and explanations will be injected here -->
+                </div>
+            </div>
+
+                <div class="flex gap-2">
+                    <button id="start-new-btn" onclick="window.location.reload()" class="flex-1 mt-8 py-3 bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-600 transition duration-150 hidden">Start New Quiz</button>
+                    <button id="back-to-topic-btn" onclick="backToStep2FromFeedback()" class="px-4 mt-8 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Back</button>
+                </div>
+        </div>
+
+    </div>
+
+    <!-- Externalized application script -->
+    <script src="assets/js/app.js" defer></script>
+
+</body>
+</html>
