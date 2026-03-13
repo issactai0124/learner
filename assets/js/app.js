@@ -15,7 +15,7 @@ function getLocaleString(key) {
     try {
         if (mainLanguage && LOCALES[mainLanguage] && LOCALES[mainLanguage][key]) return LOCALES[mainLanguage][key];
         if (LOCALES['en'] && LOCALES['en'][key]) return LOCALES['en'][key];
-    } catch (e) {}
+    } catch (e) { }
     return key;
 }
 
@@ -59,7 +59,7 @@ function transitionStep(hideId, showId) {
 }
 
 function setBreadcrumb(step) {
-    const targets = ['crumb-lang','crumb-form','crumb-topic','crumb-quiz','crumb-feedback'];
+    const targets = ['crumb-lang', 'crumb-form', 'crumb-topic', 'crumb-quiz', 'crumb-feedback'];
     targets.forEach((id, idx) => {
         const el = getElement(id);
         if (!el) return;
@@ -103,7 +103,7 @@ function goToStep2() {
         studentForm = value;
         console.log('Selected studentForm:', studentForm);
         getElement('display-form').textContent = studentForm;
-        try { sessionStorage.setItem('studentForm', studentForm); } catch (e) {}
+        try { sessionStorage.setItem('studentForm', studentForm); } catch (e) { }
         transitionStep('step-1', 'step-2');
         setBreadcrumb(3);
     } catch (err) { console.error('Error in goToStep2:', err); alert('An error occurred. See console for details.'); }
@@ -111,7 +111,7 @@ function goToStep2() {
 
 function backToStep1() {
     quizData = []; studentAnswers = {}; subjectTopic = '';
-    try { sessionStorage.removeItem('quizData'); sessionStorage.removeItem('studentAnswers'); sessionStorage.removeItem('subjectTopic'); } catch (e) {}
+    try { sessionStorage.removeItem('quizData'); sessionStorage.removeItem('studentAnswers'); sessionStorage.removeItem('subjectTopic'); } catch (e) { }
     getElement('quiz-questions').innerHTML = '';
     getElement('answer-counter').textContent = '';
     getElement('quiz-topic').textContent = '';
@@ -120,14 +120,14 @@ function backToStep1() {
 
 function backToStep2FromQuiz() { getElement('subject-input').value = subjectTopic || ''; transitionStep('step-3', 'step-2'); setBreadcrumb(3); }
 function backToStep2FromFeedback() { getElement('subject-input').value = subjectTopic || ''; transitionStep('step-4', 'step-2'); setBreadcrumb(3); }
-function backToLanguage() { try { transitionStep('step-1','step-0'); } catch (e) { getElement('step-1').classList.add('hidden'); getElement('step-0').classList.remove('hidden'); } setBreadcrumb(1); }
+function backToLanguage() { try { transitionStep('step-1', 'step-0'); } catch (e) { getElement('step-1').classList.add('hidden'); getElement('step-0').classList.remove('hidden'); } setBreadcrumb(1); }
 
 function startQuizGeneration() {
     subjectTopic = getElement('subject-input').value.trim();
     if (!subjectTopic) { alert('Please enter a Subject or Topic to generate the quiz.'); return; }
-    try { sessionStorage.setItem('subjectTopic', subjectTopic); } catch (e) {}
+    try { sessionStorage.setItem('subjectTopic', subjectTopic); } catch (e) { }
     getElement('quiz-topic').textContent = subjectTopic;
-    transitionStep('step-2','step-3'); generateQuestions();
+    transitionStep('step-2', 'step-3'); generateQuestions();
 }
 
 function updateStep1Display(lang) {
@@ -146,15 +146,15 @@ function updateStep1Display(lang) {
 
 // --- LLM API Call with Exponential Backoff ---
 async function apiCallWithBackoff(payload, maxRetries = 5) {
-    for (let i=0;i<maxRetries;i++) {
+    for (let i = 0; i < maxRetries; i++) {
         try {
-            const response = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+            const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.json();
         } catch (error) {
-            console.error(`Attempt ${i+1} failed:`, error.message);
-            if (i === maxRetries-1) throw error;
-            const delay = Math.pow(2,i)*1000 + Math.random()*1000;
+            console.error(`Attempt ${i + 1} failed:`, error.message);
+            if (i === maxRetries - 1) throw error;
+            const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
             await new Promise(r => setTimeout(r, delay));
         }
     }
@@ -172,7 +172,7 @@ async function generateQuestions() {
     const systemPrompt = "Act as a professional secondary school teacher and quiz master. Your task is to generate 5 unique multiple-choice questions for a student in " + studentForm + " on the topic: " + subjectTopic + ". Ensure the questions cover different subtopics. Provide 4 options (A, B, C, D) and the correct answer index (0-3) and a brief explanation for each question. " + langNote;
     const userQuery = (mainLanguage === 'zh') ? '請以 JSON 格式產生上述 5 題的多選題（問題、4 個選項、正確答案索引、簡短解析）。' : 'Generate the 5 multiple-choice questions now in the requested JSON format.';
 
-    const payload = { contents:[{parts:[{text: userQuery}]}], systemInstruction:{parts:[{text: systemPrompt}]}, generationConfig:{ responseMimeType:"application/json", responseSchema:{ type:"ARRAY", items:{ type:"OBJECT", properties:{ "question": { "type": "STRING" }, "options":{ "type":"ARRAY", "items":{"type":"STRING"}}, "correctAnswerIndex":{"type":"INTEGER"}, "explanation":{"type":"STRING"} }, required:["question","options","correctAnswerIndex","explanation"] } } } };
+    const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { "question": { "type": "STRING" }, "options": { "type": "ARRAY", "items": { "type": "STRING" } }, "correctAnswerIndex": { "type": "INTEGER" }, "explanation": { "type": "STRING" } }, required: ["question", "options", "correctAnswerIndex", "explanation"] } } } };
 
     try {
         const result = await apiCallWithBackoff(payload);
@@ -180,7 +180,7 @@ async function generateQuestions() {
         if (jsonText) {
             quizData = JSON.parse(jsonText);
             renderQuestions(quizData);
-            try { sessionStorage.setItem('quizData', JSON.stringify(quizData)); } catch (e) {}
+            try { sessionStorage.setItem('quizData', JSON.stringify(quizData)); } catch (e) { }
         } else { throw new Error("No valid JSON response received from the agent."); }
     } catch (error) {
         console.error("Quiz generation failed:", error);
@@ -196,19 +196,20 @@ function renderQuestions(questions) {
         container.appendChild(questionEl);
     });
     let saved = {}; try { saved = JSON.parse(sessionStorage.getItem('studentAnswers') || '{}'); } catch (e) { saved = {}; }
-    Object.keys(saved).forEach(key => { const qIdx = parseInt(key,10); const val = saved[key]; const input = container.querySelector(`input[name="question-${qIdx}"][value="${val}"]`); if (input) { input.checked = true; studentAnswers[qIdx] = parseInt(val,10); } });
-    try { sessionStorage.setItem('quizData', JSON.stringify(quizData)); } catch (e) {}
-    const submitBtn = getElement('submit-quiz-btn'); if (submitBtn) submitBtn.classList.remove('hidden'); updateSubmitState(); try { renderMathsIn(container); } catch (e) {} setBreadcrumb(4);
+    Object.keys(saved).forEach(key => { const qIdx = parseInt(key, 10); const val = saved[key]; const input = container.querySelector(`input[name="question-${qIdx}"][value="${val}"]`); if (input) { input.checked = true; studentAnswers[qIdx] = parseInt(val, 10); } });
+    try { sessionStorage.setItem('quizData', JSON.stringify(quizData)); } catch (e) { }
+    const submitBtn = getElement('submit-quiz-btn'); if (submitBtn) submitBtn.classList.remove('hidden'); updateSubmitState(); try { renderMathsIn(container); } catch (e) { } setBreadcrumb(4);
 }
 
-function captureAnswer(qIndex, oIndex) { studentAnswers[qIndex] = oIndex; updateSubmitState(); try { sessionStorage.setItem('studentAnswers', JSON.stringify(studentAnswers)); } catch (e) {} }
+function captureAnswer(qIndex, oIndex) { studentAnswers[qIndex] = oIndex; updateSubmitState(); try { sessionStorage.setItem('studentAnswers', JSON.stringify(studentAnswers)); } catch (e) { } }
 
 function updateSubmitState() { const submitBtn = getElement('submit-quiz-btn'); if (!submitBtn) return; const total = quizData?.length || 0; const answered = Object.keys(studentAnswers).length; const enable = total > 0 && answered === total; submitBtn.disabled = !enable; submitBtn.classList.toggle('opacity-60', !enable); const counter = getElement('answer-counter'); if (counter) { const prefix = getLocaleString('answered-prefix') || 'Answered'; counter.textContent = `${prefix} ${answered} / ${total}`; } }
 
 // Restore persisted state
 function restoreState() {
+    let appliedLang = true;
     try {
-        let appliedLang = false;
+        appliedLang = false;
         const savedQuiz = JSON.parse(sessionStorage.getItem('quizData') || 'null');
         const savedAnswers = JSON.parse(sessionStorage.getItem('studentAnswers') || '{}');
         const savedForm = sessionStorage.getItem('studentForm');
@@ -220,63 +221,63 @@ function restoreState() {
 
         if (savedMainLang) {
             mainLanguage = savedMainLang; appliedLang = true; try { applyLocale(mainLanguage); } catch (e) { console.warn('applyLocale failed', e); }
-            if (!savedQuiz) { try { transitionStep('step-0','step-1'); } catch (e) { getElement('step-0').classList.add('hidden'); getElement('step-1').classList.remove('hidden'); } try { updateStep1Display(mainLanguage); } catch (e) { console.warn('updateStep1Display', e); } setBreadcrumb(2); }
+            if (!savedQuiz) { try { transitionStep('step-0', 'step-1'); } catch (e) { getElement('step-0').classList.add('hidden'); getElement('step-1').classList.remove('hidden'); } try { updateStep1Display(mainLanguage); } catch (e) { console.warn('updateStep1Display', e); } setBreadcrumb(2); }
             setBreadcrumb(2);
         }
         if (savedQuiz) { window.__savedQuiz = savedQuiz; window.__savedAnswers = savedAnswers || {}; getElement('restore-banner').classList.remove('hidden'); }
     } catch (e) { console.warn('Failed to restore session state', e); }
-    try { applyLocale(mainLanguage || 'en'); } catch (e) {}
+    try { applyLocale(mainLanguage || 'en'); } catch (e) { }
     if (!appliedLang) setBreadcrumb(1);
-    try { updateSubmitState(); } catch (e) {}
+    try { updateSubmitState(); } catch (e) { }
 }
 
-function chooseLanguage(lang) { mainLanguage = lang; try { sessionStorage.setItem('mainLanguage', lang); } catch (e) {} try { applyLocale(lang); } catch (e) { console.warn('applyLocale error', e); } try { updateStep1Display(lang); } catch (e) { console.warn('updateStep1Display', e); } transitionStep('step-0','step-1'); setBreadcrumb(2); }
+function chooseLanguage(lang) { mainLanguage = lang; try { sessionStorage.setItem('mainLanguage', lang); } catch (e) { } try { applyLocale(lang); } catch (e) { console.warn('applyLocale error', e); } try { updateStep1Display(lang); } catch (e) { console.warn('updateStep1Display', e); } transitionStep('step-0', 'step-1'); setBreadcrumb(2); }
 
-function continueRestore() { const savedQuiz = window.__savedQuiz; const savedAnswers = window.__savedAnswers || {}; if (savedQuiz) { quizData = savedQuiz; studentAnswers = savedAnswers; renderQuestions(quizData); const fromStep = getElement('step-0') && !getElement('step-0').classList.contains('hidden') ? 'step-0' : 'step-1'; transitionStep(fromStep,'step-3'); setBreadcrumb(4); getElement('restore-banner').classList.add('hidden'); try { subjectTopic = sessionStorage.getItem('subjectTopic') || subjectTopic; } catch (e) {} } }
+function continueRestore() { const savedQuiz = window.__savedQuiz; const savedAnswers = window.__savedAnswers || {}; if (savedQuiz) { quizData = savedQuiz; studentAnswers = savedAnswers; renderQuestions(quizData); const fromStep = getElement('step-0') && !getElement('step-0').classList.contains('hidden') ? 'step-0' : 'step-1'; transitionStep(fromStep, 'step-3'); setBreadcrumb(4); getElement('restore-banner').classList.add('hidden'); try { subjectTopic = sessionStorage.getItem('subjectTopic') || subjectTopic; } catch (e) { } } }
 
-function discardRestore() { try { sessionStorage.removeItem('quizData'); sessionStorage.removeItem('studentAnswers'); } catch (e) {} window.__savedQuiz = null; window.__savedAnswers = null; getElement('restore-banner').classList.add('hidden'); }
+function discardRestore() { try { sessionStorage.removeItem('quizData'); sessionStorage.removeItem('studentAnswers'); } catch (e) { } window.__savedQuiz = null; window.__savedAnswers = null; getElement('restore-banner').classList.add('hidden'); }
 
 window.addEventListener('DOMContentLoaded', restoreState);
 
 // --- Core Agent Function: Evaluate and Suggest (API Call 2) ---
 async function submitQuiz() {
     if (Object.keys(studentAnswers).length !== quizData.length) { alert('Please answer all 5 questions before submitting!'); return; }
-    transitionStep('step-3','step-4'); showLoading(true);
+    transitionStep('step-3', 'step-4'); showLoading(true);
     const startBtn = getElement('start-new-btn'); if (startBtn) startBtn.classList.add('hidden'); const teacherEl = getElement('teacher-feedback'); const reviewEl = getElement('review-panel'); if (teacherEl) teacherEl.innerHTML = `<p class="text-center text-gray-500">${getLocaleString('preparing-feedback')}</p>`; if (reviewEl) reviewEl.innerHTML = '';
 
     let score = 0; const studentPerformance = [];
-    quizData.forEach((q,index) => { const studentA = studentAnswers[index]; const isCorrect = studentA === q.correctAnswerIndex; if (isCorrect) score++; studentPerformance.push({ question:q.question, correct:isCorrect, correct_index:q.correctAnswerIndex, student_index:studentA, options:q.options }); });
+    quizData.forEach((q, index) => { const studentA = studentAnswers[index]; const isCorrect = studentA === q.correctAnswerIndex; if (isCorrect) score++; studentPerformance.push({ question: q.question, correct: isCorrect, correct_index: q.correctAnswerIndex, student_index: studentA, options: q.options }); });
     getElement('final-score').textContent = score;
 
-    const performanceSummary = studentPerformance.map((p,i) => { const status = p.correct ? "CORRECT" : "INCORRECT"; const studentChoice = p.options[p.student_index] || "Not Answered"; const correctChoice = p.options[p.correct_index]; return `Q${i+1} (${status}): Student chose "${studentChoice}". Correct answer was "${correctChoice}".`; }).join('\n');
+    const performanceSummary = studentPerformance.map((p, i) => { const status = p.correct ? "CORRECT" : "INCORRECT"; const studentChoice = p.options[p.student_index] || "Not Answered"; const correctChoice = p.options[p.correct_index]; return `Q${i + 1} (${status}): Student chose "${studentChoice}". Correct answer was "${correctChoice}".`; }).join('\n');
 
     const evaluationPrompt = `\n            A student in ${studentForm} answered the following 5 questions on the topic "${subjectTopic}".\n            Their score was ${score}/5.\n            \n            Detailed Performance:\n            ---\n            ${performanceSummary}\n            ---\n\n            Based ONLY on the questions they got wrong, first provide a single paragraph of motivational and encouraging feedback (acting as a teacher). \n            Then, identify 2-3 specific subtopics where they struggled and provide 3 concrete, actionable study tips or suggestions for improvement tailored to a secondary student. \n            The output MUST use Markdown formatting for the suggestions (a bulleted list).\n        `;
     const evalLangNote = (mainLanguage === 'zh') ? '請以繁體中文回應。當包含數學式時，請使用 LaTeX 並用 $...$ 包住行內數學，或用 $$...$$ 包住區塊數學。' : 'Please respond in English. When including mathematical expressions, use LaTeX and wrap inline math in $...$ and display math in $$...$$.';
     const fullEvaluationPrompt = evalLangNote + "\n\n" + evaluationPrompt;
     const systemInstruction = "Act as a kind, insightful, and professional secondary school teacher. Provide personalized, motivational feedback and actionable study suggestions.";
-    const payload = { contents:[{parts:[{text: fullEvaluationPrompt}]}], systemInstruction:{parts:[{text: systemInstruction}]}};
+    const payload = { contents: [{ parts: [{ text: fullEvaluationPrompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] } };
 
     try {
         const result = await apiCallWithBackoff(payload);
         const feedbackText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (feedbackText) { getElement('teacher-feedback').innerHTML = formatMarkdownToHtml(feedbackText); try { renderMathsIn(getElement('teacher-feedback')); } catch (e) {} } else { throw new Error("No evaluation feedback received."); }
+        if (feedbackText) { getElement('teacher-feedback').innerHTML = formatMarkdownToHtml(feedbackText); try { renderMathsIn(getElement('teacher-feedback')); } catch (e) { } } else { throw new Error("No evaluation feedback received."); }
         renderReviewPanel(studentPerformance);
         if (startBtn) startBtn.classList.remove('hidden'); setBreadcrumb(5);
     } catch (error) { console.error("Evaluation failed:", error); getElement('teacher-feedback').innerHTML = '<p class="text-red-500 font-semibold">Error receiving feedback from the teacher agent.</p>'; } finally { showLoading(false); }
 }
 
 // Markdown helper
-function escapeHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function formatMarkdownToHtml(markdown) { if (!markdown) return ''; let text = escapeHtml(markdown); text = text.replace(/`([^`]+)`/g,'<code>$1</code>'); text = text.replace(/^###\s*(.*)$/gm,'<h3>$1</h3>'); text = text.replace(/^##\s*(.*)$/gm,'<h2>$1</h2>'); text = text.replace(/^#\s*(.*)$/gm,'<h1>$1</h1>'); text = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'); text = text.replace(/\*(.*?)\*/g,'<em>$1</em>'); const lines = text.split(/\r?\n/); let inList=false; const out=[]; for (let i=0;i<lines.length;i++){ const line = lines[i].trim(); if (line.startsWith('- ')) { if (!inList) { out.push('<ul>'); inList=true; } out.push('<li>'+line.slice(2)+'</li>'); } else { if (inList) { out.push('</ul>'); inList=false; } if (line==='' ) { out.push(''); } else { out.push('<p>'+line+'</p>'); } } } if (inList) out.push('</ul>'); return out.join('\n'); }
+function escapeHtml(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function formatMarkdownToHtml(markdown) { if (!markdown) return ''; let text = escapeHtml(markdown); text = text.replace(/`([^`]+)`/g, '<code>$1</code>'); text = text.replace(/^###\s*(.*)$/gm, '<h3>$1</h3>'); text = text.replace(/^##\s*(.*)$/gm, '<h2>$1</h2>'); text = text.replace(/^#\s*(.*)$/gm, '<h1>$1</h1>'); text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); text = text.replace(/\*(.*?)\*/g, '<em>$1</em>'); const lines = text.split(/\r?\n/); let inList = false; const out = []; for (let i = 0; i < lines.length; i++) { const line = lines[i].trim(); if (line.startsWith('- ')) { if (!inList) { out.push('<ul>'); inList = true; } out.push('<li>' + line.slice(2) + '</li>'); } else { if (inList) { out.push('</ul>'); inList = false; } if (line === '') { out.push(''); } else { out.push('<p>' + line + '</p>'); } } } if (inList) out.push('</ul>'); return out.join('\n'); }
 
-function renderReviewPanel(performance) { const reviewContainer = getElement('review-panel'); reviewContainer.innerHTML = ''; performance.forEach((p,i) => { const isCorrect = p.correct; const statusClass = isCorrect ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'; const studentChoiceText = p.options[p.student_index] || 'No Selection'; const reviewEl = document.createElement('div'); reviewEl.className = `${statusClass} p-4 rounded-lg border shadow-sm`; reviewEl.innerHTML = `\n                <p class="font-bold mb-2">Q${i + 1}: ${p.question}</p>\n                <p class="text-sm font-semibold mb-2">${isCorrect ? getLocaleString('correct-answer') : getLocaleString('incorrect-answer')}</p>\n                ${!isCorrect ? `\n                        <p class="text-sm">${getLocaleString('your-choice')}: <strong>${studentChoiceText}</strong></p>\n                    ` : ''}\n                    <div class="mt-3 p-3 bg-white border border-gray-300 rounded-md">\n                        <p class="font-semibold text-gray-800">${getLocaleString('correct-answer')}</p>\n                        <p class="text-sm mb-2 text-indigo-600"><strong>${p.options[p.correct_index]}</strong></p>\n                        <p class="text-xs text-gray-600">${quizData[i].explanation}</p>\n                    </div>\n            `; reviewContainer.appendChild(reviewEl); }); try { renderMathsIn(reviewContainer); } catch (e) {} }
+function renderReviewPanel(performance) { const reviewContainer = getElement('review-panel'); reviewContainer.innerHTML = ''; performance.forEach((p, i) => { const isCorrect = p.correct; const statusClass = isCorrect ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'; const studentChoiceText = p.options[p.student_index] || 'No Selection'; const reviewEl = document.createElement('div'); reviewEl.className = `${statusClass} p-4 rounded-lg border shadow-sm`; reviewEl.innerHTML = `\n                <p class="font-bold mb-2">Q${i + 1}: ${p.question}</p>\n                <p class="text-sm font-semibold mb-2">${isCorrect ? getLocaleString('correct-answer') : getLocaleString('incorrect-answer')}</p>\n                ${!isCorrect ? `\n                        <p class="text-sm">${getLocaleString('your-choice')}: <strong>${studentChoiceText}</strong></p>\n                    ` : ''}\n                    <div class="mt-3 p-3 bg-white border border-gray-300 rounded-md">\n                        <p class="font-semibold text-gray-800">${getLocaleString('correct-answer')}</p>\n                        <p class="text-sm mb-2 text-indigo-600"><strong>${p.options[p.correct_index]}</strong></p>\n                        <p class="text-xs text-gray-600">${quizData[i].explanation}</p>\n                    </div>\n            `; reviewContainer.appendChild(reviewEl); }); try { renderMathsIn(reviewContainer); } catch (e) { } }
 
-function renderMathsIn(el) { if (!el) return; const attemptRender = (attemptsLeft) => { if (typeof renderMathInElement === 'function') { try { renderMathInElement(el, { delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}], throwOnError:false }); } catch (e) { console.warn('renderMathInElement failed', e); } } else { if (attemptsLeft>0) setTimeout(()=>attemptRender(attemptsLeft-1),250); else console.warn('KaTeX auto-render not available after retries. Math may not render.'); } }; attemptRender(6); }
+function renderMathsIn(el) { if (!el) return; const attemptRender = (attemptsLeft) => { if (typeof renderMathInElement === 'function') { try { renderMathInElement(el, { delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }], throwOnError: false }); } catch (e) { console.warn('renderMathInElement failed', e); } } else { if (attemptsLeft > 0) setTimeout(() => attemptRender(attemptsLeft - 1), 250); else console.warn('KaTeX auto-render not available after retries. Math may not render.'); } }; attemptRender(6); }
 
 // Post-processing helpers (kept but not auto-applied)
-function wrapDetectedMath(s) { if (!s||typeof s!=='string') return s; if (s.includes('$')) return s; let modified = s; modified = modified.replace(/(^|[^\\])\bimes\b/g, (m,p1) => p1+'\\times'); modified = modified.replace(/([A-Za-z0-9]+)\^(-?\d+)/g, (m,p1,p2) => p1+'^{'+p2+'}'); const mathTokenRegex = /(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\}|\\times|\^[{]?[-0-9A-Za-z]+[}]?|[A-Za-z]+\^{[-0-9A-Za-z]+}|[A-Za-z0-9]+\^[-0-9]+)/; if (mathTokenRegex.test(modified)) { const mathHint = /\\frac|\\sqrt|\\times|\^/; if (mathHint.test(modified)) modified = '$'+modified+'$'; } return modified; }
-function postProcessQuizData(arr) { if (!Array.isArray(arr)) return arr; arr.forEach(item=>{ try { if (item.question) item.question = wrapDetectedMath(item.question); if (item.explanation) item.explanation = wrapDetectedMath(item.explanation); if (Array.isArray(item.options)) item.options = item.options.map(opt => wrapDetectedMath(opt)); } catch(e){ console.warn('postProcessQuizData error',e);} }); return arr; }
-function postProcessFeedbackText(text) { if (!text||typeof text!=='string') return text; if (text.includes('$')) return text; const lines = text.split(/\r?\n/); for (let i=0;i<lines.length;i++){ const line = lines[i]; if (/\\frac|\\sqrt|\\times|\^|[A-Za-z0-9]+\/[A-Za-z0-9]+/.test(line)) lines[i] = '$'+line.trim()+'$'; else if (/([A-Za-z0-9]+)\^(-?\d+)/.test(line)) lines[i] = '$'+line.trim()+'$'; } const joined = lines.join('\n'); if (joined !== text) console.debug('postProcessFeedbackText applied wrapping'); return joined; }
+function wrapDetectedMath(s) { if (!s || typeof s !== 'string') return s; if (s.includes('$')) return s; let modified = s; modified = modified.replace(/(^|[^\\])\bimes\b/g, (m, p1) => p1 + '\\times'); modified = modified.replace(/([A-Za-z0-9]+)\^(-?\d+)/g, (m, p1, p2) => p1 + '^{' + p2 + '}'); const mathTokenRegex = /(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\}|\\times|\^[{]?[-0-9A-Za-z]+[}]?|[A-Za-z]+\^{[-0-9A-Za-z]+}|[A-Za-z0-9]+\^[-0-9]+)/; if (mathTokenRegex.test(modified)) { const mathHint = /\\frac|\\sqrt|\\times|\^/; if (mathHint.test(modified)) modified = '$' + modified + '$'; } return modified; }
+function postProcessQuizData(arr) { if (!Array.isArray(arr)) return arr; arr.forEach(item => { try { if (item.question) item.question = wrapDetectedMath(item.question); if (item.explanation) item.explanation = wrapDetectedMath(item.explanation); if (Array.isArray(item.options)) item.options = item.options.map(opt => wrapDetectedMath(opt)); } catch (e) { console.warn('postProcessQuizData error', e); } }); return arr; }
+function postProcessFeedbackText(text) { if (!text || typeof text !== 'string') return text; if (text.includes('$')) return text; const lines = text.split(/\r?\n/); for (let i = 0; i < lines.length; i++) { const line = lines[i]; if (/\\frac|\\sqrt|\\times|\^|[A-Za-z0-9]+\/[A-Za-z0-9]+/.test(line)) lines[i] = '$' + line.trim() + '$'; else if (/([A-Za-z0-9]+)\^(-?\d+)/.test(line)) lines[i] = '$' + line.trim() + '$'; } const joined = lines.join('\n'); if (joined !== text) console.debug('postProcessFeedbackText applied wrapping'); return joined; }
 
 // --- Localization support ---
 const LOCALES = {
@@ -359,7 +360,7 @@ function applyLocale(lang) {
             el.textContent = dict[key];
         }
     });
-    const crumbs = ['crumb-lang','crumb-form','crumb-topic','crumb-quiz','crumb-feedback'];
+    const crumbs = ['crumb-lang', 'crumb-form', 'crumb-topic', 'crumb-quiz', 'crumb-feedback'];
     crumbs.forEach(id => {
         const el = getElement(id);
         if (!el) return;

@@ -24,7 +24,7 @@ app.post('/api/generate', async (req, res) => {
       return res.status(500).json({ error: 'Server misconfiguration: GENERATIVE_API_KEY missing' });
     }
 
-    const upstreamUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+    const upstreamUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(upstreamUrl, {
       method: 'POST',
